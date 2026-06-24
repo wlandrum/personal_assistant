@@ -1,0 +1,6 @@
+provider: ollama        # ollama | claude
+ollama:
+  base_url: http://localhost:11434
+  model: qwen3.6:27b    # the acceptance test flips this to gemma3:4b
+claude:
+  model: claude-sonnet-4-6
