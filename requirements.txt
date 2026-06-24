@@ -1,0 +1,5 @@
+ollama
+anthropic
+pydantic
+pyyaml
+pytest
