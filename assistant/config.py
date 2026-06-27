@@ -19,11 +19,16 @@ class ResearchCfg(BaseModel):
     model: str = "sonar"
 
 
+class FinanceCfg(BaseModel):
+    plaid_env: str = "sandbox"
+
+
 class Settings(BaseModel):
     models: dict[str, ModelTier]
     transcription: TranscriptionCfg = TranscriptionCfg()
     timezone: str = "America/New_York"
     research: ResearchCfg = ResearchCfg()
+    finance: FinanceCfg = FinanceCfg()
 
 
 def load_settings(path: str = "config.yaml") -> Settings:

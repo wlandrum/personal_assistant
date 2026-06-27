@@ -18,3 +18,5 @@ timezone: America/New_York
 research:
   provider: perplexity
   model: sonar
+finance:
+  plaid_env: sandbox

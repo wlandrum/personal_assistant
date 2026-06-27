@@ -108,6 +108,51 @@ class UserStore:
             return None
         return decrypt(bytes(row[0]))
 
+    # Transactions
+
+    def add_transactions(self, source: str, txns: list[dict]) -> int:
+        added = 0
+        for t in txns:
+            cur = self.conn.execute(
+                "INSERT INTO transactions (owner_id, source, external_id, date, name, amount) "
+                "VALUES (%s, %s, %s, %s, %s, %s) "
+                "ON CONFLICT (owner_id, external_id) DO NOTHING RETURNING id",
+                (self.owner_id, source, t["external_id"], t["date"], t["name"], t["amount"]),
+            )
+            if cur.fetchone():
+                added += 1
+        return added
+
+    def get_uncategorized(self) -> list[dict]:
+        cur = self.conn.execute(
+            "SELECT id, name FROM transactions WHERE owner_id = %s AND category IS NULL",
+            (self.owner_id,),
+        )
+        return [{"id": str(i), "name": n} for i, n in cur.fetchall()]
+
+    def set_category(self, txn_id: str, category: str) -> None:
+        self.conn.execute(
+            "UPDATE transactions SET category = %s WHERE owner_id = %s AND id = %s",
+            (category, self.owner_id, txn_id),
+        )
+
+    # Merchant rules
+
+    def get_merchant_rule(self, merchant_key: str) -> str | None:
+        cur = self.conn.execute(
+            "SELECT category FROM merchant_rules WHERE owner_id = %s AND merchant_key = %s",
+            (self.owner_id, merchant_key),
+        )
+        row = cur.fetchone()
+        return row[0] if row else None
+
+    def add_merchant_rule(self, merchant_key: str, category: str) -> None:
+        self.conn.execute(
+            "INSERT INTO merchant_rules (owner_id, merchant_key, category) VALUES (%s, %s, %s) "
+            "ON CONFLICT (owner_id, merchant_key) DO NOTHING",
+            (self.owner_id, merchant_key, category),
+        )
+
     # Decisions
 
     def add_decision(self, idea: str, verdict: str, reasoning: str) -> None:

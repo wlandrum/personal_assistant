@@ -15,3 +15,4 @@ google-auth
 google-auth-oauthlib
 cryptography
 requests
+plaid-python

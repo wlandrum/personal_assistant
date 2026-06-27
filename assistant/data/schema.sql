@@ -77,3 +77,27 @@ CREATE TABLE IF NOT EXISTS decisions (
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS decisions_owner_idx ON decisions (owner_id);
+
+CREATE TABLE IF NOT EXISTS transactions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    owner_id UUID NOT NULL REFERENCES users(id),
+    source TEXT NOT NULL,
+    external_id TEXT NOT NULL,
+    date DATE NOT NULL,
+    name TEXT NOT NULL,
+    amount NUMERIC(12,2) NOT NULL,
+    category TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE (owner_id, external_id)
+);
+CREATE INDEX IF NOT EXISTS transactions_owner_date_idx ON transactions (owner_id, date);
+
+CREATE TABLE IF NOT EXISTS merchant_rules (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    owner_id UUID NOT NULL REFERENCES users(id),
+    merchant_key TEXT NOT NULL,
+    category TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE (owner_id, merchant_key)
+);
+CREATE INDEX IF NOT EXISTS merchant_rules_owner_idx ON merchant_rules (owner_id);
