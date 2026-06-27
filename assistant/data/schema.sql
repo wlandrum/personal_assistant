@@ -101,3 +101,11 @@ CREATE TABLE IF NOT EXISTS merchant_rules (
     UNIQUE (owner_id, merchant_key)
 );
 CREATE INDEX IF NOT EXISTS merchant_rules_owner_idx ON merchant_rules (owner_id);
+
+CREATE TABLE IF NOT EXISTS api_tokens (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    owner_id UUID NOT NULL REFERENCES users(id),
+    token_hash TEXT NOT NULL UNIQUE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS api_tokens_hash_idx ON api_tokens (token_hash);
