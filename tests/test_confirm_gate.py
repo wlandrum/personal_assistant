@@ -22,6 +22,7 @@ def make_orch(monkeypatch, fake):
     orch.settings = None
     orch.subagents = {"calendar": fake}
     orch.pending = {}
+    orch.critiques = {}
     return orch
 
 

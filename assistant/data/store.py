@@ -108,6 +108,23 @@ class UserStore:
             return None
         return decrypt(bytes(row[0]))
 
+    # Decisions
+
+    def add_decision(self, idea: str, verdict: str, reasoning: str) -> None:
+        self.conn.execute(
+            "INSERT INTO decisions (owner_id, idea, verdict, reasoning) VALUES (%s, %s, %s, %s)",
+            (self.owner_id, idea, verdict, reasoning),
+        )
+
+    def get_decisions(self, limit: int = 50) -> list[dict]:
+        cur = self.conn.execute(
+            "SELECT idea, verdict, reasoning, created_at FROM decisions "
+            "WHERE owner_id = %s ORDER BY created_at DESC LIMIT %s",
+            (self.owner_id, limit),
+        )
+        return [{"idea": i, "verdict": v, "reasoning": r, "created_at": t}
+                for i, v, r, t in cur.fetchall()]
+
     # Audit log
 
     def add_audit(self, action: str, detail: str = "") -> None:

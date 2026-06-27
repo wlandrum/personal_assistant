@@ -67,3 +67,13 @@ CREATE TABLE IF NOT EXISTS audit_log (
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS audit_log_owner_idx ON audit_log (owner_id, created_at);
+
+CREATE TABLE IF NOT EXISTS decisions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    owner_id UUID NOT NULL REFERENCES users(id),
+    idea TEXT NOT NULL,
+    verdict TEXT NOT NULL,
+    reasoning TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS decisions_owner_idx ON decisions (owner_id);

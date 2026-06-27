@@ -7,6 +7,7 @@ from assistant.agents.calendar import CalendarSubagent
 from assistant.agents.email import EmailSubagent
 from assistant.agents.research_agent import ResearchSubagent
 from assistant.agents.coding import CodingSubagent
+from assistant.agents.critic import CriticSubagent
 from assistant.agents.actions import PendingAction
 
 
@@ -29,6 +30,8 @@ class Orchestrator:
             "code": CodingSubagent(conn, settings, embedder),
         }
         self.pending = {}
+        self.critic = CriticSubagent(conn, settings, embedder)
+        self.critiques = {}
 
     def respond(self, owner_id: str, message: str, history=None) -> str:
         pending = self.pending.get(owner_id)
@@ -42,8 +45,32 @@ class Orchestrator:
                 return "Cancelled. Nothing was written."
             return f"You have a pending action:\n{pending.summary}\nReply 'confirm' or 'cancel'."
 
+        # active critique discussion
+        session = self.critiques.get(owner_id)
+        if session is not None:
+            verdict = self.critic.detect_terminal(message)
+            if verdict in ("accept", "reject"):
+                summary = self.critic.resolve(owner_id, session["idea"], session["history"], verdict)
+                self.critiques.pop(owner_id, None)
+                return summary
+            reply = self.critic.round(owner_id, message, session["history"])
+            session["history"].append({"role": "user", "content": message})
+            session["history"].append({"role": "assistant", "content": reply})
+            return reply
+
         router_provider = get_provider(self.settings, "router")
         route = classify(router_provider, message)
+
+        if route == "critic":
+            opening = self.critic.open(owner_id, message)
+            self.critiques[owner_id] = {
+                "idea": message,
+                "history": [
+                    {"role": "user", "content": message},
+                    {"role": "assistant", "content": opening},
+                ],
+            }
+            return opening + "\n\nLet us talk it through. Share your thoughts, or say you accept or reject it to conclude."
 
         if route in self.subagents:
             result = self.subagents[route].handle(owner_id, message)
