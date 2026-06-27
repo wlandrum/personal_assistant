@@ -8,8 +8,15 @@ class ModelTier(BaseModel):
     base_url: str = "http://localhost:11434"
 
 
+class TranscriptionCfg(BaseModel):
+    model_size: str = "large-v3"
+    device: str = "cuda"
+    compute_type: str = "float16"
+
+
 class Settings(BaseModel):
     models: dict[str, ModelTier]
+    transcription: TranscriptionCfg = TranscriptionCfg()
 
 
 def load_settings(path: str = "config.yaml") -> Settings:

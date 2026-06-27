@@ -10,3 +10,7 @@ models:
   frontier:
     provider: claude
     model: claude-sonnet-4-6
+transcription:
+  model_size: large-v3
+  device: cuda
+  compute_type: float16

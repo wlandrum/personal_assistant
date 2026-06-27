@@ -5,3 +5,6 @@ pyyaml
 pytest
 psycopg[binary]
 pgvector
+faster-whisper
+sounddevice
+soundfile
