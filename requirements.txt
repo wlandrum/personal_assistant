@@ -3,3 +3,5 @@ anthropic
 pydantic
 pyyaml
 pytest
+psycopg[binary]
+pgvector
