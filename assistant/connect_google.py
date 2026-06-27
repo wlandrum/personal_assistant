@@ -9,7 +9,7 @@ SERVICES = {
         "key": "google_calendar",
     },
     "gmail": {
-        "scopes": ["https://www.googleapis.com/auth/gmail.readonly"],
+        "scopes": ["https://www.googleapis.com/auth/gmail.modify"],
         "key": "gmail",
     },
 }

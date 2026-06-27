@@ -2,6 +2,7 @@ import json
 from assistant.data.store import UserStore
 from assistant.llm.factory import get_provider
 from assistant.connectors.gmail_client import GoogleGmailClient
+from assistant.agents.actions import PendingAction
 
 CATEGORIES = ("important", "newsletter", "promotional", "other")
 
@@ -22,18 +23,31 @@ class EmailSubagent:
         self.conn = conn
         self.settings = settings
 
-    def handle(self, owner_id: str, message: str) -> str:
+    def handle(self, owner_id: str, message: str):
         token = UserStore(self.conn, owner_id).get_credential("gmail")
         if not token:
             return "No Gmail connection found. Run connect_google <owner_id> gmail first."
-
         client = GoogleGmailClient(token)
+
+        if self._intent(message) == "cleanup":
+            return self._propose_cleanup(owner_id, client)
+        return self._triage(owner_id, client)
+
+    def _intent(self, message: str) -> str:
+        prompt = (
+            "Does the user want to (a) read, triage, or summarize their inbox, "
+            "or (b) clean up, organize, archive, or delete mail? "
+            "Answer with one word: triage or cleanup.\n\n" + message
+        )
+        small = get_provider(self.settings, "router")
+        answer = small.complete(prompt).strip().lower()
+        return "cleanup" if "cleanup" in answer else "triage"
+
+    def _fetch_and_classify(self, client):
         ids = client.list_recent(max_results=20)
         messages = [client.get_message(mid) for mid in ids]
-
         if not messages:
-            return "Your inbox has no recent messages to triage."
-
+            return [], {}
         listing = "\n".join(
             f"{i}. From: {m['from']} | Subject: {m['subject']} | {m['snippet'][:120]}"
             for i, m in enumerate(messages)
@@ -48,8 +62,14 @@ class EmailSubagent:
             labels = _parse_json_array(small.complete(classify_prompt))
         except Exception:
             labels = [{"index": i, "category": "other"} for i in range(len(messages))]
-
         by_index = {item["index"]: item["category"] for item in labels if "index" in item}
+        return messages, by_index
+
+    def _triage(self, owner_id: str, client) -> str:
+        messages, by_index = self._fetch_and_classify(client)
+        if not messages:
+            return "Your inbox has no recent messages to triage."
+
         important = [messages[i] for i in range(len(messages)) if by_index.get(i) == "important"]
 
         summary = "No important messages flagged."
@@ -82,3 +102,42 @@ class EmailSubagent:
             summary,
         ]
         return "\n".join(lines)
+
+    def _propose_cleanup(self, owner_id: str, client):
+        messages, by_index = self._fetch_and_classify(client)
+        if not messages:
+            return "Your inbox has no recent messages to clean up."
+
+        to_archive = [messages[i] for i in range(len(messages)) if by_index.get(i) == "newsletter"]
+        to_trash = [messages[i] for i in range(len(messages)) if by_index.get(i) == "promotional"]
+
+        if not to_archive and not to_trash:
+            return (
+                "Nothing matched the cleanup policy. Newsletters get archived and promotional "
+                "mail goes to Trash, and none were found."
+            )
+
+        lines = ["Proposed inbox cleanup:"]
+        if to_archive:
+            lines.append(f"Archive {len(to_archive)} newsletters:")
+            lines += [f"- {m['subject']} (from {m['from']})" for m in to_archive]
+        if to_trash:
+            lines.append(f"Move {len(to_trash)} promotional emails to Trash (recoverable for 30 days):")
+            lines += [f"- {m['subject']} (from {m['from']})" for m in to_trash]
+        summary = "\n".join(lines)
+
+        conn = self.conn
+
+        def execute() -> str:
+            for m in to_archive:
+                client.archive(m["id"])
+                UserStore(conn, owner_id).add_audit("gmail_archive", m["subject"])
+            for m in to_trash:
+                client.trash(m["id"])
+                UserStore(conn, owner_id).add_audit("gmail_trash", m["subject"])
+            return (
+                f"Done. Archived {len(to_archive)} newsletters and moved {len(to_trash)} "
+                "promotional emails to Trash. Trash is recoverable for 30 days."
+            )
+
+        return PendingAction(summary=summary, execute=execute)

@@ -5,7 +5,7 @@ CLASSIFY_PROMPT = (
     "Labels:\n"
     "- note: a brain dump, meeting notes, or things to remember.\n"
     "- calendar: a request to schedule, book, or add something to a calendar at a time or date.\n"
-    "- email: a request to check, triage, or summarize the inbox or recent emails.\n"
+    "- email: a request to check, triage, summarize, organize, clean up, archive, or delete inbox mail.\n"
     "- chat: a question or general conversation.\n"
     "Respond with only the single label word, nothing else.\n\n"
     "Message:\n"

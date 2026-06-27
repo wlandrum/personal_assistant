@@ -34,3 +34,11 @@ class GoogleGmailClient:
             "date": _header(headers, "Date"),
             "snippet": msg.get("snippet", ""),
         }
+
+    def archive(self, message_id: str) -> None:
+        self.service.users().messages().modify(
+            userId="me", id=message_id, body={"removeLabelIds": ["INBOX"]}
+        ).execute()
+
+    def trash(self, message_id: str) -> None:
+        self.service.users().messages().trash(userId="me", id=message_id).execute()
