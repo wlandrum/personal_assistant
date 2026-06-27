@@ -33,7 +33,7 @@ def make_user(conn, name):
     return str(cur.fetchone()[0])
 
 
-def test_context_contains_only_owner_data(conn):
+def test_context_contains_only_owner_data(conn, monkeypatch):
     a = make_user(conn, f"a_{uuid.uuid4()}")
     b = make_user(conn, f"b_{uuid.uuid4()}")
 
@@ -43,7 +43,10 @@ def test_context_contains_only_owner_data(conn):
     UserStore(conn, b).add_episode("bravo private episode", [0.1] * 768)
 
     provider = FakeProvider()
-    orch = Orchestrator(conn, provider, FakeEmbedder())
+    monkeypatch.setattr("assistant.orchestrator.orchestrator.get_provider", lambda s, tier: provider)
+    monkeypatch.setattr("assistant.orchestrator.orchestrator.classify", lambda p, m: "chat")
+
+    orch = Orchestrator(conn, None, FakeEmbedder())
     orch.respond(a, "what is my secret")
 
     assert "alpha-secret" in provider.last_system
@@ -52,14 +55,15 @@ def test_context_contains_only_owner_data(conn):
     assert "bravo private episode" not in provider.last_system
 
 
-def test_remember_stores_under_correct_owner(conn):
+def test_remember_stores_under_correct_owner(conn, monkeypatch):
     a = make_user(conn, f"a_{uuid.uuid4()}")
     b = make_user(conn, f"b_{uuid.uuid4()}")
 
     provider = FakeProvider()
     provider.complete = lambda prompt, system=None: "a distilled summary"
-    orch = Orchestrator(conn, provider, FakeEmbedder())
+    monkeypatch.setattr("assistant.orchestrator.orchestrator.get_provider", lambda s, tier: provider)
 
+    orch = Orchestrator(conn, None, FakeEmbedder())
     orch.remember(a, [{"role": "user", "content": "hello"}])
 
     a_episodes = UserStore(conn, a).search_episodes([0.1] * 768, k=10)

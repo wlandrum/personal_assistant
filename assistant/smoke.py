@@ -5,10 +5,10 @@ from .llm.factory import get_provider
 
 def main():
     settings = load_settings()
-    provider = get_provider(settings)
+    tier = "workhorse"
+    provider = get_provider(settings, tier)
     prompt = " ".join(sys.argv[1:]) or "Say hello in one short sentence."
-    active = getattr(settings, settings.provider)
-    print(f"[provider={settings.provider} model={active.model}]")
+    print(f"[tier={tier} model={settings.models[tier].model}]")
     print(provider.complete(prompt))
 
 

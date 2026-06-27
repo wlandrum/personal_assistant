@@ -1,6 +1,12 @@
-provider: ollama        # ollama | claude
-ollama:
-  base_url: http://localhost:11434
-  model: gemma4:latest    # the acceptance test flips this to gemma3:4b
-claude:
-  model: claude-sonnet-4-6
+models:
+  router:
+    provider: ollama
+    base_url: http://localhost:11434
+    model: gemma4:latest
+  workhorse:
+    provider: ollama
+    base_url: http://localhost:11434
+    model: gemma4:latest
+  frontier:
+    provider: claude
+    model: claude-sonnet-4-6

@@ -1,6 +1,5 @@
 import sys
 from assistant.config import load_settings
-from assistant.llm.factory import get_provider
 from assistant.embeddings.ollama_embedder import OllamaEmbedder
 from assistant.data.db import connect
 from assistant.orchestrator.orchestrator import Orchestrator
@@ -13,10 +12,9 @@ def main():
         return
 
     settings = load_settings()
-    provider = get_provider(settings)
     embedder = OllamaEmbedder()
     conn = connect()
-    orch = Orchestrator(conn, provider, embedder)
+    orch = Orchestrator(conn, settings, embedder)
 
     history = []
     print("Chatting. Type 'exit' to end and save a memory.")

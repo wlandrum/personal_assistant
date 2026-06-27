@@ -2,19 +2,14 @@ import yaml
 from pydantic import BaseModel
 
 
-class OllamaCfg(BaseModel):
+class ModelTier(BaseModel):
+    provider: str
+    model: str
     base_url: str = "http://localhost:11434"
-    model: str = "qwen3.6:27b"
-
-
-class ClaudeCfg(BaseModel):
-    model: str = "claude-sonnet-4-6"
 
 
 class Settings(BaseModel):
-    provider: str = "ollama"
-    ollama: OllamaCfg = OllamaCfg()
-    claude: ClaudeCfg = ClaudeCfg()
+    models: dict[str, ModelTier]
 
 
 def load_settings(path: str = "config.yaml") -> Settings:
