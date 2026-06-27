@@ -4,6 +4,7 @@ from assistant.llm.factory import get_provider
 from assistant.agents.router import classify
 from assistant.agents.notes import NotesSubagent
 from assistant.agents.calendar import CalendarSubagent
+from assistant.agents.email import EmailSubagent
 from assistant.agents.actions import PendingAction
 
 
@@ -21,6 +22,7 @@ class Orchestrator:
         self.subagents = {
             "note": NotesSubagent(conn, settings, embedder),
             "calendar": CalendarSubagent(conn, settings, embedder),
+            "email": EmailSubagent(conn, settings, embedder),
         }
         self.pending = {}
 

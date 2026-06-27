@@ -107,3 +107,19 @@ class UserStore:
         if not row:
             return None
         return decrypt(bytes(row[0]))
+
+    # Audit log
+
+    def add_audit(self, action: str, detail: str = "") -> None:
+        self.conn.execute(
+            "INSERT INTO audit_log (owner_id, action, detail) VALUES (%s, %s, %s)",
+            (self.owner_id, action, detail),
+        )
+
+    def get_audit(self, limit: int = 50) -> list[dict]:
+        cur = self.conn.execute(
+            "SELECT action, detail, created_at FROM audit_log "
+            "WHERE owner_id = %s ORDER BY created_at DESC LIMIT %s",
+            (self.owner_id, limit),
+        )
+        return [{"action": a, "detail": d, "created_at": t} for a, d, t in cur.fetchall()]

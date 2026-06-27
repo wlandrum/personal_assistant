@@ -58,3 +58,12 @@ CREATE TABLE IF NOT EXISTS credentials (
     UNIQUE (owner_id, provider)
 );
 CREATE INDEX IF NOT EXISTS credentials_owner_idx ON credentials (owner_id);
+
+CREATE TABLE IF NOT EXISTS audit_log (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    owner_id UUID NOT NULL REFERENCES users(id),
+    action TEXT NOT NULL,
+    detail TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS audit_log_owner_idx ON audit_log (owner_id, created_at);
