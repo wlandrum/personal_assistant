@@ -1,20 +1,27 @@
 import json
+from datetime import date
 from assistant.data.store import UserStore
 from assistant.llm.factory import get_provider
 from assistant.agents.actions import PendingAction
 from assistant.connectors.calendar_service import create_all_day_event
 
-NOTES_PROMPT = (
-    "You are a note-processing assistant. Read the user's raw note and return a JSON object only, "
-    "with no preamble and no code fences. Use this shape:\n"
-    "{\n"
-    '  "summary": "two or three sentence summary",\n'
-    '  "category": "a short category label",\n'
-    '  "action_items": [{"text": "...", "due_date": "YYYY-MM-DD or null"}]\n'
-    "}\n"
-    "If there are no action items, use an empty list. Only include a due_date when the note clearly implies one.\n\n"
-    "Raw note:\n"
-)
+
+def _notes_prompt() -> str:
+    today = date.today().isoformat()
+    return (
+        f"Today is {today}. You are a note-processing assistant. "
+        "Read the user's raw note and return a JSON object only, "
+        "with no preamble and no code fences. Use this shape:\n"
+        "{\n"
+        '  "summary": "two or three sentence summary",\n'
+        '  "category": "a short category label",\n'
+        '  "action_items": [{"text": "...", "due_date": "YYYY-MM-DD or null"}]\n'
+        "}\n"
+        "If there are no action items, use an empty list. "
+        "Only include a due_date when the note clearly implies one. "
+        "Resolve relative dates like 'next Friday' or 'by July 3rd' against today's date.\n\n"
+        "Raw note:\n"
+    )
 
 
 def _parse_json(raw: str) -> dict:
@@ -40,7 +47,7 @@ class NotesSubagent:
 
     def handle(self, owner_id: str, message: str):
         provider = get_provider(self.settings, "workhorse")
-        raw = provider.complete(NOTES_PROMPT + message)
+        raw = provider.complete(_notes_prompt() + message)
         data = _parse_json(raw)
 
         summary = data.get("summary", "").strip()
