@@ -1,9 +1,10 @@
-ROUTES = ("note", "chat")
+ROUTES = ("note", "calendar", "chat")
 
 CLASSIFY_PROMPT = (
     "Classify the user's message into exactly one label.\n"
     "Labels:\n"
-    "- note: the user is dumping thoughts, a brain dump, meeting notes, or things to do.\n"
+    "- note: a brain dump, meeting notes, or things to remember.\n"
+    "- calendar: a request to schedule, book, or add something to a calendar at a time or date.\n"
     "- chat: a question or general conversation.\n"
     "Respond with only the single label word, nothing else.\n\n"
     "Message:\n"

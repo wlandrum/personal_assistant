@@ -3,6 +3,8 @@ from assistant.orchestrator.context import build_context
 from assistant.llm.factory import get_provider
 from assistant.agents.router import classify
 from assistant.agents.notes import NotesSubagent
+from assistant.agents.calendar import CalendarSubagent
+from assistant.agents.actions import PendingAction
 
 
 def _format_history(history):
@@ -18,14 +20,31 @@ class Orchestrator:
         self.embedder = embedder
         self.subagents = {
             "note": NotesSubagent(conn, settings, embedder),
+            "calendar": CalendarSubagent(conn, settings, embedder),
         }
+        self.pending = {}
 
     def respond(self, owner_id: str, message: str, history=None) -> str:
+        pending = self.pending.get(owner_id)
+        if pending is not None:
+            decision = message.strip().lower()
+            if decision in ("confirm", "yes", "y", "ok", "do it"):
+                self.pending.pop(owner_id, None)
+                return pending.execute()
+            if decision in ("cancel", "no", "n", "stop"):
+                self.pending.pop(owner_id, None)
+                return "Cancelled. Nothing was written."
+            return f"You have a pending action:\n{pending.summary}\nReply 'confirm' or 'cancel'."
+
         router_provider = get_provider(self.settings, "router")
         route = classify(router_provider, message)
 
         if route in self.subagents:
-            return self.subagents[route].handle(owner_id, message)
+            result = self.subagents[route].handle(owner_id, message)
+            if isinstance(result, PendingAction):
+                self.pending[owner_id] = result
+                return f"{result.summary}\nReply 'confirm' to proceed or 'cancel' to discard."
+            return result
 
         return self._chat(owner_id, message, history)
 

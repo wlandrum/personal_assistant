@@ -85,3 +85,25 @@ class UserStore:
             (self.owner_id,),
         )
         return [{"text": t, "due_date": d, "done": dn} for t, d, dn in cur.fetchall()]
+
+    # Third-party credentials
+
+    def save_credential(self, provider: str, token_plaintext: str) -> None:
+        from assistant.secrets_box import encrypt
+        enc = encrypt(token_plaintext)
+        self.conn.execute(
+            "INSERT INTO credentials (owner_id, provider, token) VALUES (%s, %s, %s) "
+            "ON CONFLICT (owner_id, provider) DO UPDATE SET token = EXCLUDED.token",
+            (self.owner_id, provider, enc),
+        )
+
+    def get_credential(self, provider: str) -> str | None:
+        from assistant.secrets_box import decrypt
+        cur = self.conn.execute(
+            "SELECT token FROM credentials WHERE owner_id = %s AND provider = %s",
+            (self.owner_id, provider),
+        )
+        row = cur.fetchone()
+        if not row:
+            return None
+        return decrypt(bytes(row[0]))

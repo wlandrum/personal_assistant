@@ -17,6 +17,7 @@ class TranscriptionCfg(BaseModel):
 class Settings(BaseModel):
     models: dict[str, ModelTier]
     transcription: TranscriptionCfg = TranscriptionCfg()
+    timezone: str = "America/New_York"
 
 
 def load_settings(path: str = "config.yaml") -> Settings:

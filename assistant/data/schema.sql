@@ -48,3 +48,13 @@ CREATE TABLE IF NOT EXISTS note_action_items (
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS note_action_items_owner_idx ON note_action_items (owner_id);
+
+CREATE TABLE IF NOT EXISTS credentials (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    owner_id UUID NOT NULL REFERENCES users(id),
+    provider TEXT NOT NULL,
+    token BYTEA NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE (owner_id, provider)
+);
+CREATE INDEX IF NOT EXISTS credentials_owner_idx ON credentials (owner_id);
