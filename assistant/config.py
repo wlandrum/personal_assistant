@@ -14,10 +14,16 @@ class TranscriptionCfg(BaseModel):
     compute_type: str = "float16"
 
 
+class ResearchCfg(BaseModel):
+    provider: str = "perplexity"
+    model: str = "sonar"
+
+
 class Settings(BaseModel):
     models: dict[str, ModelTier]
     transcription: TranscriptionCfg = TranscriptionCfg()
     timezone: str = "America/New_York"
+    research: ResearchCfg = ResearchCfg()
 
 
 def load_settings(path: str = "config.yaml") -> Settings:

@@ -5,6 +5,7 @@ from assistant.agents.router import classify
 from assistant.agents.notes import NotesSubagent
 from assistant.agents.calendar import CalendarSubagent
 from assistant.agents.email import EmailSubagent
+from assistant.agents.research_agent import ResearchSubagent
 from assistant.agents.actions import PendingAction
 
 
@@ -23,6 +24,7 @@ class Orchestrator:
             "note": NotesSubagent(conn, settings, embedder),
             "calendar": CalendarSubagent(conn, settings, embedder),
             "email": EmailSubagent(conn, settings, embedder),
+            "research": ResearchSubagent(conn, settings, embedder),
         }
         self.pending = {}
 
