@@ -6,6 +6,7 @@ from assistant.agents.notes import NotesSubagent
 from assistant.agents.calendar import CalendarSubagent
 from assistant.agents.email import EmailSubagent
 from assistant.agents.research_agent import ResearchSubagent
+from assistant.agents.coding import CodingSubagent
 from assistant.agents.actions import PendingAction
 
 
@@ -25,6 +26,7 @@ class Orchestrator:
             "calendar": CalendarSubagent(conn, settings, embedder),
             "email": EmailSubagent(conn, settings, embedder),
             "research": ResearchSubagent(conn, settings, embedder),
+            "code": CodingSubagent(conn, settings, embedder),
         }
         self.pending = {}
 
