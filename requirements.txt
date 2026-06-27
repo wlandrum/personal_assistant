@@ -16,3 +16,5 @@ google-auth-oauthlib
 cryptography
 requests
 plaid-python
+matplotlib>=3.9
+pyparsing>=3.1,<4

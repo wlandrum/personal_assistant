@@ -29,6 +29,7 @@ class Settings(BaseModel):
     timezone: str = "America/New_York"
     research: ResearchCfg = ResearchCfg()
     finance: FinanceCfg = FinanceCfg()
+    charts_dir: str = "./charts"
 
 
 def load_settings(path: str = "config.yaml") -> Settings:

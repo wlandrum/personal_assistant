@@ -153,6 +153,30 @@ class UserStore:
             (self.owner_id, merchant_key, category),
         )
 
+    # Finance aggregations
+
+    def spending_by_category(self, start=None, end=None) -> list[dict]:
+        sql = ("SELECT COALESCE(category, 'uncategorized'), SUM(amount) "
+               "FROM transactions WHERE owner_id = %s AND amount > 0")
+        params = [self.owner_id]
+        if start:
+            sql += " AND date >= %s"; params.append(start)
+        if end:
+            sql += " AND date <= %s"; params.append(end)
+        sql += " GROUP BY 1 ORDER BY 2 DESC"
+        cur = self.conn.execute(sql, tuple(params))
+        return [{"category": c, "total": float(t)} for c, t in cur.fetchall()]
+
+    def spending_by_month(self, months: int = 6) -> list[dict]:
+        cur = self.conn.execute(
+            "SELECT to_char(date, 'YYYY-MM') AS m, SUM(amount) "
+            "FROM transactions WHERE owner_id = %s AND amount > 0 "
+            "GROUP BY m ORDER BY m DESC LIMIT %s",
+            (self.owner_id, months),
+        )
+        rows = [{"month": m, "total": float(t)} for m, t in cur.fetchall()]
+        return list(reversed(rows))
+
     # Decisions
 
     def add_decision(self, idea: str, verdict: str, reasoning: str) -> None:

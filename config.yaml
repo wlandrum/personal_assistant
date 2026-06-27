@@ -20,3 +20,4 @@ research:
   model: sonar
 finance:
   plaid_env: sandbox
+charts_dir: ./charts
