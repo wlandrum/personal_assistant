@@ -9,6 +9,7 @@ faster-whisper==0.10.1
 ctranslate2==3.24.0
 sounddevice
 soundfile
+python-dotenv
 google-api-python-client
 google-auth
 google-auth-oauthlib

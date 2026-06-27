@@ -1,6 +1,9 @@
 import os
 import psycopg
 from pgvector.psycopg import register_vector
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 def connect() -> psycopg.Connection:
