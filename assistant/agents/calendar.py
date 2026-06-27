@@ -1,8 +1,7 @@
 import json
 from datetime import date
-from assistant.data.store import UserStore
 from assistant.llm.factory import get_provider
-from assistant.connectors.google_calendar import GoogleCalendarClient
+from assistant.connectors.calendar_service import create_timed_event
 from assistant.agents.actions import PendingAction
 
 
@@ -46,11 +45,9 @@ class CalendarSubagent:
         settings = self.settings
 
         def execute() -> str:
-            token = UserStore(conn, owner_id).get_credential("google_calendar")
-            if not token:
+            link = create_timed_event(conn, settings, owner_id, title, start_iso, end_iso, description)
+            if link is None:
                 return "No Google Calendar connection found. Run connect_google first."
-            client = GoogleCalendarClient(token)
-            link = client.create_event(title, start_iso, end_iso, settings.timezone, description)
             return f"Event created: {link}"
 
         return PendingAction(summary=summary, execute=execute)

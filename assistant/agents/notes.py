@@ -1,6 +1,8 @@
 import json
 from assistant.data.store import UserStore
 from assistant.llm.factory import get_provider
+from assistant.agents.actions import PendingAction
+from assistant.connectors.calendar_service import create_all_day_event
 
 NOTES_PROMPT = (
     "You are a note-processing assistant. Read the user's raw note and return a JSON object only, "
@@ -36,7 +38,7 @@ class NotesSubagent:
         self.settings = settings
         self.embedder = embedder
 
-    def handle(self, owner_id: str, message: str) -> str:
+    def handle(self, owner_id: str, message: str):
         provider = get_provider(self.settings, "workhorse")
         raw = provider.complete(NOTES_PROMPT + message)
         data = _parse_json(raw)
@@ -51,11 +53,34 @@ class NotesSubagent:
         vec = self.embedder.embed(summary)
         store.add_episode(summary, vec)
 
-        lines = [f"Saved a note in category '{category}'.", f"Summary: {summary}"]
+        saved_lines = [f"Saved a note in category '{category}'.", f"Summary: {summary}"]
         if action_items:
-            lines.append("Action items:")
+            saved_lines.append("Action items:")
             for item in action_items:
                 due = item.get("due_date")
                 suffix = f" (due {due})" if due else ""
-                lines.append(f"- {item['text']}{suffix}")
-        return "\n".join(lines)
+                saved_lines.append(f"- {item['text']}{suffix}")
+        saved_text = "\n".join(saved_lines)
+
+        dated = [i for i in action_items if i.get("due_date")]
+        if not dated:
+            return saved_text
+
+        offer_lines = [saved_text, "", "I can add these dated items to your calendar:"]
+        for item in dated:
+            offer_lines.append(f"- {item['text']} on {item['due_date']}")
+        offer = "\n".join(offer_lines)
+
+        conn = self.conn
+        settings = self.settings
+
+        def execute() -> str:
+            results = []
+            for item in dated:
+                link = create_all_day_event(conn, settings, owner_id, item["text"], item["due_date"])
+                if link is None:
+                    return "Note is saved, but there is no Google Calendar connection to add events. Run connect_google first."
+                results.append(f"- {item['text']}: {link}")
+            return "Added to your calendar:\n" + "\n".join(results)
+
+        return PendingAction(summary=offer, execute=execute)

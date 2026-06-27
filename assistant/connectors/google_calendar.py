@@ -17,3 +17,13 @@ class GoogleCalendarClient:
         }
         created = self.service.events().insert(calendarId="primary", body=body).execute()
         return created.get("htmlLink", "event created")
+
+    def create_all_day(self, title, start_date, end_date, description=None):
+        body = {
+            "summary": title,
+            "description": description or "",
+            "start": {"date": start_date},
+            "end": {"date": end_date},
+        }
+        created = self.service.events().insert(calendarId="primary", body=body).execute()
+        return created.get("htmlLink", "event created")
