@@ -9,9 +9,11 @@ class ModelTier(BaseModel):
 
 
 class TranscriptionCfg(BaseModel):
+    mode: str = "local"
+    remote_url: str = "http://localhost:9000/transcribe"
     model_size: str = "large-v3"
-    device: str = "cuda"
-    compute_type: str = "float16"
+    device: str = "cpu"
+    compute_type: str = "int8"
 
 
 class ResearchCfg(BaseModel):

@@ -9,12 +9,12 @@ from assistant.config import load_settings
 from assistant.embeddings.ollama_embedder import OllamaEmbedder
 from assistant.data.db import connect, apply_schema
 from assistant.orchestrator.orchestrator import Orchestrator
-from assistant.transcription.whisper_transcriber import FasterWhisperTranscriber
+from assistant.transcription.factory import get_transcriber
 
 settings = load_settings()
 conn = connect()
 apply_schema(conn)
-embedder = OllamaEmbedder()
+embedder = OllamaEmbedder(base_url=settings.models["router"].base_url)
 orch = Orchestrator(conn, settings, embedder)
 
 _lock = Lock()
@@ -55,8 +55,7 @@ def message(body: dict, owner_id: str = Depends(resolve_owner)):
 def _get_transcriber():
     global _transcriber
     if _transcriber is None:
-        t = settings.transcription
-        _transcriber = FasterWhisperTranscriber(t.model_size, t.device, t.compute_type)
+        _transcriber = get_transcriber(settings)
     return _transcriber
 
 
