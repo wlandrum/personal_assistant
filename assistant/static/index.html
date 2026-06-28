@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Assistant</title>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="stylesheet" href="/style.css">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#101418">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
+</head>
+<body>
+  <header>
+    <span>Assistant</span>
+    <button id="settingsBtn" aria-label="settings">settings</button>
+  </header>
+
+  <main id="log" aria-live="polite"></main>
+
+  <div id="settings" class="hidden">
+    <label>Backend URL<input id="urlInput" placeholder="leave blank to use this site"></label>
+    <label>Token<input id="tokenInput" type="password" placeholder="paste your token"></label>
+    <button id="saveBtn">Save</button>
+  </div>
+
+  <footer>
+    <button id="recBtn" aria-label="record">rec</button>
+    <input id="msg" placeholder="Message" autocomplete="off">
+    <button id="sendBtn">Send</button>
+  </footer>
+
+  <script src="/app.js"></script>
+</body>
+</html>

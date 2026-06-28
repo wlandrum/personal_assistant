@@ -4,6 +4,7 @@ import tempfile
 from threading import Lock
 
 from fastapi import FastAPI, Depends, HTTPException, Header, UploadFile, File
+from fastapi.staticfiles import StaticFiles
 
 from assistant.config import load_settings
 from assistant.embeddings.ollama_embedder import OllamaEmbedder
@@ -68,3 +69,6 @@ def voice(file: UploadFile = File(...), owner_id: str = Depends(resolve_owner)):
     with _lock:
         reply = orch.respond(owner_id, transcript)
     return {"transcript": transcript, "reply": reply}
+
+
+app.mount("/", StaticFiles(directory="assistant/static", html=True), name="static")
